@@ -329,7 +329,10 @@
             <el-checkbox v-model="upload.updateSupport" /> 是否更新已经存在的用户数据
           </div>
           <span>仅允许导入xls、xlsx格式文件。</span>
+          <br/>
           <el-link type="primary" :underline="false" style="font-size:12px;vertical-align: baseline;" @click="importTemplate">下载模板</el-link>
+          <br/>
+          <el-link type="primary" :underline="false" style="font-size:12px;vertical-align: baseline;" @click="importFaileInfo">下载导入失败信息</el-link>
         </div>
       </el-upload>
       <div slot="footer" class="dialog-footer">
@@ -345,6 +348,7 @@ import { listUser, getUser, delUser, addUser, updateUser, resetUserPwd, changeUs
 import { getToken } from "@/utils/auth";
 import Treeselect from "@riophae/vue-treeselect";
 import "@riophae/vue-treeselect/dist/vue-treeselect.css";
+import request from '@/utils/request'
 
 export default {
   name: "User",
@@ -649,6 +653,92 @@ export default {
       this.download('system/user/importTemplate', {
       }, `user_template_${new Date().getTime()}.xlsx`)
     },
+
+    //根据文件后缀,添加base64前缀,拼接完整的base64
+    getBase64Type(type) {
+      switch (type) {
+        case 'txt': return 'data:text/plain;base64,'
+        case 'doc': return 'data:application/msword;base64,'
+        case 'docx': return 'data:application/vnd.openxmlformats-officedocument.wordprocessingml.document;base64,'
+        case 'xls': return 'data:application/vnd.ms-excel;base64,'
+        case 'xlsx': return 'data:application/vnd.openxmlformats-officedocument.spreadsheetml.sheet;base64,'
+        case 'pdf': return 'data:application/pdf;base64,'
+        case 'pptx': return 'data:application/vnd.openxmlformats-officedocument.presentationml.presentation;base64,'
+        case 'ppt': return 'data:application/vnd.ms-powerpoint;base64,'
+        case 'png': return 'data:image/png;base64,'
+        case 'jpg', 'jpeg': return 'data:image/jpeg;base64,'
+        case 'gif': return 'data:image/gif;base64,'
+        case 'svg': return 'data:image/svg+xml;base64,'
+        case 'ico': return 'data:image/x-icon;base64,'
+        case 'bmp': return 'data:image/bmp;base64,'
+      }
+    },
+    //将完整的base64码转换为blob
+    base6toBlob(dataurl) {
+      var arr = dataurl.split(","),
+        mimeString = arr[0].match(/:(.*?);/)[1],
+        str = atob(arr[1]),
+        u8 = new Uint8Array(str.length)
+      for (let i = 0; i < str.length; i++) {
+        u8[i] = str.charCodeAt(i)
+      }
+      return new Blob([u8], { type: mimeString })
+    },
+    /** 下载失败信息操作   测试后端返回json对象，对象里面包含byte[]内容(也叫base64文件流)*/
+    importFaileInfo(){
+      request({
+        url: '/test/excel/exportExcelTemplate1',
+        method: 'get',
+      }).then((res) => {
+        // console.log("data",res.data)
+        if (res) {
+          let base64url = this.getBase64Type('xlsx')+res.data
+          var blob = this.base6toBlob(base64url)
+
+          // 这里就是创建一个a标签，等下用来模拟点击事件
+          let downloadElement = document.createElement("a");
+          // 根据解析后的blob对象创建URL 对象
+          let href = window.URL.createObjectURL(blob);
+          // 下载链接
+          downloadElement.href = href;
+          // 下载文件名,如果后端没有返回，可以自己写a.download = '文件.pdf'
+          downloadElement.download = "aa.xlsx";
+          document.body.appendChild(downloadElement);
+          // 点击a标签，进行下载
+          downloadElement.click();
+          // 收尾工作，在内存中移除URL 对象
+          window.URL.revokeObjectURL(href);
+        } else {
+          this.$message.error('系统错误');
+        }
+      })
+    },
+    /** 下载失败信息操作    测试后端直接返回文件流方式有两种
+                           第一种返回结果直接是byte[]
+                           第二种返回结果是void 把文件流通过响应头传给前端
+     */
+    // importFaileInfo(){
+    //   request({
+    //     url: 'system/user/importTemplate',
+    //     responseType: "blob", // 需要加上
+    //     method: 'post',
+    //   }).then((res) => {
+    //     console.log("data",res)
+    //     if (res) {
+    //       let blob = new Blob([res])
+    //       console.log("转换后文件:",blob)
+    //       let downloadElement = document.createElement("a");
+    //       let href = window.URL.createObjectURL(blob);
+    //       downloadElement.href = href;
+    //       downloadElement.download = "aa.xlsx";
+    //       document.body.appendChild(downloadElement);
+    //       downloadElement.click();
+    //       window.URL.revokeObjectURL(href);
+    //     } else {
+    //       this.$message.error('系统错误');
+    //     }
+    //   })
+    // },
     // 文件上传中处理
     handleFileUploadProgress(event, file, fileList) {
       this.upload.isUploading = true;

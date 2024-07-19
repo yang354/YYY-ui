@@ -33,10 +33,10 @@
           @keyup.enter.native="handleQuery"
         />
       </el-form-item>
-      <el-form-item label="商品库存，-1表示没有限制" prop="goodsStock">
+      <el-form-item label="商品库存" prop="goodsStock">
         <el-input
           v-model="queryParams.goodsStock"
-          placeholder="请输入商品库存，-1表示没有限制"
+          placeholder="请输入商品库存"
           clearable
           @keyup.enter.native="handleQuery"
         />
@@ -101,7 +101,7 @@
       <el-table-column label="商品图片" align="center" prop="goodsImg" />
       <el-table-column label="商品详情" align="center" prop="goodsDetail" />
       <el-table-column label="商品价格" align="center" prop="goodsPrice" />
-      <el-table-column label="商品库存，-1表示没有限制" align="center" prop="goodsStock" />
+      <el-table-column label="商品库存" align="center" prop="goodsStock" />
       <el-table-column label="操作" align="center" class-name="small-padding fixed-width">
         <template slot-scope="scope">
           <el-button
@@ -148,7 +148,7 @@
         <el-form-item label="商品价格" prop="goodsPrice">
           <el-input v-model="form.goodsPrice" placeholder="请输入商品价格" />
         </el-form-item>
-        <el-form-item label="商品库存，-1表示没有限制" prop="goodsStock">
+        <el-form-item label="商品库存" prop="goodsStock">
           <el-input v-model="form.goodsStock" placeholder="请输入商品库存，-1表示没有限制" />
         </el-form-item>
       </el-form>

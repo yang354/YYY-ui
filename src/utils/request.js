@@ -29,13 +29,31 @@ service.interceptors.request.use(config => {
   if (getToken() && !isToken) {
     config.headers['Authorization'] = 'Bearer ' + getToken() // 让每个请求携带自定义token 请根据实际情况自行修改
   }
-  // get请求映射params参数
+
+  // get请求映射params参数 通过此这简单的代码，可以让get请求自动变为我们熟悉的形式[http://localhost:8080/view/list?key1=value1&key2=value2]
   if (config.method === 'get' && config.params) {
     let url = config.url + '?' + tansParams(config.params);
     url = url.slice(0, -1);
     config.params = {};
     config.url = url;
   }
+
+  /**
+   查询在线用户列表
+   export function list(query) {
+    return request({
+      url: '/monitor/online/list',
+      method: 'get',
+      params: query
+    })
+  }
+   带参数链接：  http://localhost/dev-api/monitor/online/list
+   不带参数链接：http://localhost/dev-api/monitor/online/list?ipaddr=127.0.0.1&userName=admin
+   */
+
+
+
+
   if (!isRepeatSubmit && (config.method === 'post' || config.method === 'put')) {
     const requestObj = {
       url: config.url,
@@ -66,6 +84,7 @@ service.interceptors.request.use(config => {
 })
 
 // 响应拦截器
+//一般情况下，因为已经有了全局错误处理，直接调用封装后的axios方法即可，无需额外的try...catch。但在处理特定业务逻辑或需要更细粒度控制错误流时，可以根据需要适当使用try...catch。
 service.interceptors.response.use(res => {
     // 未设置状态码则默认成功状态
     const code = res.data.code || 200;
